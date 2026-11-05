@@ -1,0 +1,8 @@
+[tools]
+python = "3.12"
+uv = "0.12"
+pre-commit = "4.6"
+
+# make uv use this mise-managed Python instead of downloading/using its own
+[env]
+UV_NO_MANAGED_PYTHON = "1"
