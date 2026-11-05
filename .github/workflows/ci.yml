@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Free up storage space on runner before build
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+    - name: Install mise-pinned tools (uv, python)
+      uses: jdx/mise-action@v2
+      with:
+        cache: true
+
+    - name: Free up storage space on runner again
+      run: sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+    - name: Cache uv package downloads
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/uv
+        key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          uv-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: uv sync --locked
+
+    - name: Run tests
+      run: uv run pytest tests/
