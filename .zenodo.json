@@ -1,0 +1,43 @@
+{
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Gennaro, Gloria"
+    },
+    {
+      "name": "Vissens, Anna"
+    },
+    {
+      "name": "Thornewill von Essen, Alice"
+    },
+    {
+      "name": "Ravalde, Tom"
+    },
+    {
+      "name": "Egan, Joseph"
+    },
+    {
+      "name": "Dave, Simran"
+    },
+    {
+      "name": "Dable, Eliot"
+    },
+    {
+      "name": "Facini, Gabriel"
+    }
+  ],
+  "description": "Source code and data for the modelling in the paper 'Measuring immigration rhetoric in the UK parliament'.",
+  "keywords": [
+    "immigration",
+    "UK",
+    "politics",
+    "rhetoric",
+    "natural language processing"
+  ],
+  "language": "eng",
+  "license": "MIT",
+  "publication_date": "2026-11-05",
+  "title": "Measuring immigration rhetoric in the UK parliament: Source code and data",
+  "upload_type": "software",
+  "version": "1.0.0"
+}

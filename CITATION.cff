@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+message: "If you use this software or associated data, please cite the associated paper."
+title: "Measuring immigration rhetoric in the UK parliament: Source code and data"
+version: 1.0.0
+date-released: 2026-11-05
+abstract: "Source code and data for the modelling in the paper 'Measuring immigration rhetoric in the UK parliament'."
+license:
+  - MIT
+  - CC-BY-4.0
+repository-code: https://github.com/guardian/immigration-rhetoric
+authors:
+  - family-names: Gennaro
+    given-names: Gloria
+  - family-names: Vissens
+    given-names: Anna
+  - family-names: Thornewill von Essen
+    given-names: Alice
+  - family-names: Ravalde
+    given-names: Tom
+  - family-names: Egan
+    given-names: Joseph
+  - family-names: Dave
+    given-names: Simran
+  - family-names: Dable
+    given-names: Eliot
+  - family-names: Facini
+    given-names: Gabriel
+preferred-citation:
+  type: article
+  title: "Measuring immigration rhetoric in the UK parliament"
+  authors:
+    - family-names: Gennaro
+      given-names: Gloria
+    - family-names: Vissens
+      given-names: Anna
+    - family-names: Thornewill von Essen
+      given-names: Alice
+    - family-names: Ravalde
+      given-names: Tom
+    - family-names: Egan
+      given-names: Joseph
+    - family-names: Dave
+      given-names: Simran
+    - family-names: Dable
+      given-names: Eliot
+    - family-names: Facini
+      given-names: Gabriel
+  year: 2026
+  journal: PNAS Nexus
+keywords:
+  - immigration
+  - UK
+  - politics
+  - rhetoric
+  - natural language processing

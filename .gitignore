@@ -1,0 +1,10 @@
+# Generated or downloaded data
+data/pipeline_output/
+data/annotations/
+data/models/
+
+# Environment and tool caches
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
