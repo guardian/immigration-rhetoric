@@ -1,0 +1,139 @@
+title: "Immigration rhetoric: relevance and sentiment text classification"
+description: >
+  Train and evaluate two spaCy text classification models on labelled snippets from UK parliamentary
+  speeches: one for relevance (is a snippet about immigration?) and one for sentiment towards immigration
+  (for relevant snippets only).
+
+vars:
+  name: "immigration"
+  lang: "en"
+  config: "textcat.cfg"
+  annotations: "assets/consolidated.jsonl"
+  seeds: "17 23 31 43 59"
+  seed: 17
+  gpu_id: -1
+  version: "1.0.0"
+
+directories: ["assets", "configs", "corpus", "training/rs${vars.seed}/relevance", "training/rs${vars.seed}/sentiment", "training/rs${vars.seed}/combined", "packages"]
+
+assets:
+  - dest: "${vars.annotations}"
+    description: "Consolidated annotations from stage06_agreement"
+
+workflows:
+  all:
+    - build_training_data
+    - train_relevance
+    - evaluate_relevance
+    - train_sentiment
+    - evaluate_sentiment
+    - evaluate_combined
+    - evaluate_over_time
+
+commands:
+  - name: build_training_data
+    help: "Build the holdout set and one train/eval split per seed as spaCy DocBin files"
+    script:
+      - "python -m immigration_rhetoric.stage07_model_training.run_build_training_data --input-file ${vars.annotations} --output-dir corpus --seeds ${vars.seeds}"
+    deps:
+      - "build_training_data.py"
+      - "${vars.annotations}"
+    outputs:
+      - "corpus/holdout_relevance.spacy"
+      - "corpus/holdout_sentiment.spacy"
+      - "corpus/rs${vars.seed}_train_relevance.spacy"
+      - "corpus/rs${vars.seed}_eval_relevance.spacy"
+      - "corpus/rs${vars.seed}_train_sentiment.spacy"
+      - "corpus/rs${vars.seed}_eval_sentiment.spacy"
+
+  - name: train_relevance
+    help: "Train the relevance model"
+    script:
+      - "python -m spacy train configs/${vars.config} --output training/rs${vars.seed}/relevance --paths.train corpus/rs${vars.seed}_train_relevance.spacy --paths.dev corpus/rs${vars.seed}_eval_relevance.spacy --gpu-id ${vars.gpu_id}"
+    deps:
+      - "configs/${vars.config}"
+      - "corpus/rs${vars.seed}_train_relevance.spacy"
+      - "corpus/rs${vars.seed}_eval_relevance.spacy"
+    outputs:
+      - "training/rs${vars.seed}/relevance/model-best"
+
+  - name: evaluate_relevance
+    help: "Evaluate the relevance model on its eval split"
+    script:
+      - "python -m spacy evaluate training/rs${vars.seed}/relevance/model-best corpus/rs${vars.seed}_eval_relevance.spacy --output training/rs${vars.seed}/relevance/metrics.json --gpu-id ${vars.gpu_id}"
+    deps:
+      - "training/rs${vars.seed}/relevance/model-best"
+      - "corpus/rs${vars.seed}_eval_relevance.spacy"
+    outputs:
+      - "training/rs${vars.seed}/relevance/metrics.json"
+
+  - name: train_sentiment
+    help: "Train the sentiment model"
+    script:
+      - "python -m spacy train configs/${vars.config} --output training/rs${vars.seed}/sentiment --paths.train corpus/rs${vars.seed}_train_sentiment.spacy --paths.dev corpus/rs${vars.seed}_eval_sentiment.spacy --gpu-id ${vars.gpu_id}"
+    deps:
+      - "configs/${vars.config}"
+      - "corpus/rs${vars.seed}_train_sentiment.spacy"
+      - "corpus/rs${vars.seed}_eval_sentiment.spacy"
+    outputs:
+      - "training/rs${vars.seed}/sentiment/model-best"
+
+  - name: evaluate_sentiment
+    help: "Evaluate the sentiment model on its eval split"
+    script:
+      - "python -m spacy evaluate training/rs${vars.seed}/sentiment/model-best corpus/rs${vars.seed}_eval_sentiment.spacy --output training/rs${vars.seed}/sentiment/metrics.json --gpu-id ${vars.gpu_id}"
+    deps:
+      - "training/rs${vars.seed}/sentiment/model-best"
+      - "corpus/rs${vars.seed}_eval_sentiment.spacy"
+    outputs:
+      - "training/rs${vars.seed}/sentiment/metrics.json"
+
+  - name: evaluate_combined
+    help: "Evaluate the relevance and sentiment models combined, with confusion matrix plots"
+    script:
+      - "python -m immigration_rhetoric.stage07_model_training.run_evaluate_models --relevance-model training/rs${vars.seed}/relevance/model-best --sentiment-model training/rs${vars.seed}/sentiment/model-best --relevance-eval corpus/rs${vars.seed}_eval_relevance.spacy --sentiment-eval corpus/rs${vars.seed}_eval_sentiment.spacy --output-metrics training/rs${vars.seed}/combined/metrics.json --output-predictions training/rs${vars.seed}/combined/predictions.jsonl --plot training/rs${vars.seed}/combined/confusion_matrix.png --gpu-id ${vars.gpu_id}"
+    deps:
+      - "evaluate_models.py"
+      - "training/rs${vars.seed}/relevance/model-best"
+      - "training/rs${vars.seed}/sentiment/model-best"
+      - "corpus/rs${vars.seed}_eval_relevance.spacy"
+      - "corpus/rs${vars.seed}_eval_sentiment.spacy"
+    outputs:
+      - "training/rs${vars.seed}/combined/metrics.json"
+      - "training/rs${vars.seed}/combined/predictions.jsonl"
+      - "training/rs${vars.seed}/combined/confusion_matrix.png"
+
+  - name: evaluate_over_time
+    help: "Plot the combined models' performance by the decade of each eval snippet"
+    script:
+      - "python -m immigration_rhetoric.stage07_model_training.run_evaluate_models_over_time --predictions training/rs${vars.seed}/combined/predictions.jsonl --plot training/rs${vars.seed}/combined/performance_over_time_overall_by_decade.png"
+    deps:
+      - "evaluate_models_over_time.py"
+      - "training/rs${vars.seed}/combined/predictions.jsonl"
+    outputs:
+      - "training/rs${vars.seed}/combined/performance_over_time_overall_by_decade.png"
+
+  - name: bayesian_analysis
+    help: "Estimate the uncertainty in model performance from the eval metrics of every seed's models"
+    script:
+      - "python -m immigration_rhetoric.stage07_model_training.run_bayesian_analysis --training-dir training --seeds ${vars.seeds} --output training/bayesian_summary.csv"
+    # Its inputs depend on the seeds, so always re-run it rather than tracking them as deps
+    no_skip: true
+    outputs:
+      - "training/bayesian_summary.csv"
+
+  - name: package
+    help: "Package both models as installable wheels, with the combined metrics and confusion matrix"
+    script:
+      - "python -m spacy package training/rs${vars.seed}/relevance/model-best packages --name ${vars.name}_relevance --version ${vars.version} --build wheel --force"
+      - "cp training/rs${vars.seed}/combined/metrics.json training/rs${vars.seed}/combined/confusion_matrix.png packages/${vars.lang}_${vars.name}_relevance-${vars.version}/"
+      - "python -m spacy package training/rs${vars.seed}/sentiment/model-best packages --name ${vars.name}_sentiment --version ${vars.version} --build wheel --force"
+      - "cp training/rs${vars.seed}/combined/metrics.json training/rs${vars.seed}/combined/confusion_matrix.png packages/${vars.lang}_${vars.name}_sentiment-${vars.version}/"
+    deps:
+      - "training/rs${vars.seed}/relevance/model-best"
+      - "training/rs${vars.seed}/sentiment/model-best"
+      - "training/rs${vars.seed}/combined/metrics.json"
+      - "training/rs${vars.seed}/combined/confusion_matrix.png"
+    outputs:
+      - "packages/${vars.lang}_${vars.name}_relevance-${vars.version}/dist/${vars.lang}_${vars.name}_relevance-${vars.version}-py3-none-any.whl"
+      - "packages/${vars.lang}_${vars.name}_sentiment-${vars.version}/dist/${vars.lang}_${vars.name}_sentiment-${vars.version}-py3-none-any.whl"

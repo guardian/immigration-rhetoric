@@ -1,0 +1,13 @@
+assets/
+corpus/
+packages/
+project.lock
+
+# Ignore everything in training/ except the combined evaluation plots (git can't re-include files
+# inside an ignored folder, so each level is ignored with `*` and its subfolder re-included)
+training/*
+!training/rs*/
+training/rs*/*
+!training/rs*/combined/
+training/rs*/combined/*
+!training/rs*/combined/*.png

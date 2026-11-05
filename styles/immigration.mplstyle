@@ -1,0 +1,12 @@
+# Text
+font.size: 16
+font.family: IBM Plex Sans, sans-serif
+font.weight: normal
+text.color: "#121212"
+
+
+# Axes
+axes.titlecolor: "#121212"
+axes.labelcolor: "#121212"
+xtick.labelcolor: "#121212"
+ytick.labelcolor: "#121212"

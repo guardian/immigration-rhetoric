@@ -1,0 +1,49 @@
+# Generic figure tweaks
+figure.figsize: 15, 10
+figure.dpi: 150
+savefig.dpi: 300
+savefig.bbox: tight
+
+
+# Axes
+axes.linewidth: 1
+axes.spines.top: False
+axes.spines.bottom: False
+axes.spines.right: False
+axes.spines.left: False
+
+# Ticks
+xtick.top: False # Remove tick lines
+xtick.bottom: False
+ytick.left: False
+ytick.right: False
+
+
+# Text
+font.size: 10  # == medium
+font.weight: light
+font.family: GuardianTextSans, IBM Plex Sans, sans-serif
+axes.titlesize: large  # Titles of axes objects (but not axes label!)
+axes.titleweight: medium
+axes.titlelocation: left
+axes.labelsize: medium
+xtick.labelsize: small
+ytick.labelsize: small
+
+
+# Grid
+axes.grid: True
+axes.axisbelow: True
+grid.color: "#dcdcdc"
+grid.linestyle: -
+grid.linewidth: 1.0
+
+
+# Line chart only
+lines.linewidth: 1
+
+
+# Legend
+legend.frameon: False
+legend.numpoints: 1
+legend.scatterpoints: 1
